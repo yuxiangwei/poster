@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title></title>
+        <script type="text/javascript" src="js/jquery-1.11.1.js" ></script>
+        <script type="text/javascript" src="js/jquery.qrcode.js" ></script>
+        <script type="text/javascript" src="js/qrcode.js" ></script> 
+        <script type="text/javascript" src="js/utf.js" ></script>
+        <style type="text/css">
+            canvas,img{
+                border-radius: 5px;
+                box-shadow: 2px 1px rgba(0, 0, 0, 0.8);
+            }
+
+        </style>
+</head>
+<body style="background-color: black;">
+<canvas id="myCanvas"></canvas>
+<div id="qrcodeCanvas"></div>
+<script type="text/javascript">
+    //海报文案
+     var str_customer = "小阔爱",
+         str_sub_standard = "我发现了一个很好吃的东西哦",
+         str_product = "火山泥岩洗面奶男士专用控油祛痘去黑头去油除螨虫学生补水洁面乳【包邮】",
+         str_price = "￥129.00",
+         str_qr_code = "长按识别二维码",
+         str_share_tips = "√登录后分享，是分销员可以参与返利哦！";
+    //海报图片路径
+     var img_product_path = "./product.jpg",
+         img_logo_path = './logo.png';
+    //分享商品链接
+    var share_url = "http://192.168.121.158:9204/130g-p16404.html";
+
+     $('#qrcodeCanvas').qrcode({
+         render    : "canvas",
+         text    : share_url,
+         width : "200",               //二维码的宽度
+         height : "200",              //二维码的高度
+         background : "#ffffff",       //二维码的后景色
+         foreground : "#000000",        //二维码的前景色
+         src: img_logo_path           //二维码中间的图片
+     }); 
+    $('#qrcodeCanvas').hide();
+    let qrcodeCanvas= $('#qrcodeCanvas canvas').get(0); 
+    let path = qrcodeCanvas.toDataURL('image/jpg');
+
+    // console.log(path)
+    var myCanvas = document.getElementById("myCanvas"); // 使用id来寻找canvas元素
+    var cxt = myCanvas.getContext("2d"); // 创建context对象
+    let ratio = getPixelRatio(cxt);
+
+    // 设置myCanvas的宽高
+    myCanvas.width = 320 * ratio; //设置myCanvas的宽
+    myCanvas.height = 600 * ratio; //设置myCanvas的高
+    //针对苹果高清屏放大图片提高图片清晰度
+    cxt.scale(ratio, ratio);
+
+    // 绘制一个矩形，用来做全局背景颜色
+    cxt.fillStyle = "#fff"; // fillStyle方法将其染成红色
+    cxt.fillRect(0,0,myCanvas.width,myCanvas.height); // fillRect方法是创建一个矩形，x坐标、y坐标、宽度、高度
+
+    cxt.fillStyle = "#fff"; 
+    cxt.fillRect(0,0,320,300); // fillRect方法是创建一个矩形，x坐标、y坐标、宽度、高度
+
+    cxt.fillStyle = "#f6f7f9";   
+    cxt.fillRect(0,300,320,300); // fillRect方法是创建一个矩形，x坐标、y坐标、宽度、高度
+    // 把图片绘制到myCanvas
+    var img_product = new Image()
+    img_product.src = img_product_path; // 图片路径
+
+    img_product.onload = function () {
+            cxt.drawImage(img_product,60,75,200,200);
+            // 客户名
+            cxt.fillStyle="#000";
+            cxt.font = "normal bold 17px 黑体";
+            cxt.textBaseline = "middle";
+            cxt.textAlign = "left";
+            cxt.fillText(str_customer,12,20);
+            //副标
+            cxt.fillStyle="#676767";
+            cxt.font = "normal 100 16px 微软雅黑";
+            cxt.textBaseline = "middle";
+            cxt.textAlign = "left";
+            cxt.fillText(str_sub_standard,12,50);
+            // 把图片绘制到myCanvas
+            var img_logo = new Image()
+            img_logo.src = img_logo_path; // 图片路径
+            img_logo.onload = function () {
+                cxt.drawImage(img_logo,12,70,40,40);
+            }
+
+        //价格
+        cxt.fillStyle="#df3033";
+        cxt.font = "normal bold 20px 微软雅黑";
+        cxt.textBaseline = "middle";
+        cxt.textAlign = "left";
+        cxt.fillText(str_price,12,330);
+        // 绘制商品标题，自动换行
+        cxt.fillStyle="#333";
+        cxt.font = "16px bold 黑体";
+        cxt.textBaseline = "middle";
+        cxt.textAlign = "left";
+        var lineWidth = 0;
+        var canvasWidth = 300;//一行文字占用的宽度
+        var initHeight=360;//绘制字体距离canvas顶部初始的高度
+        var lastSubStrIndex= 0; //每次开始截取的字符串的索引
+        for(let i=0;i<str_product.length;i++){
+            lineWidth+=cxt.measureText(str_product[i]).width;
+            if(lineWidth>canvasWidth){
+                cxt.fillText(str_product.substring(lastSubStrIndex,i),12,initHeight);//绘制截取部分
+                initHeight+=20; //20为字体的高度
+                lineWidth=0;
+                lastSubStrIndex=i;
+            }
+            if(i==str_product.length-1){ //绘制剩余部分
+                cxt.fillText(str_product.substring(lastSubStrIndex,i+1),12,initHeight);
+            }
+        }
+        // 绘制二维码
+        let qrcode = new Image()
+        qrcode.src = path // 二维码图片路径
+        // 为了防止图片还没加载完成就执行drawImage，需要延迟10ms再执行drawImage
+        qrcode.onload = function(){
+            cxt.fillStyle = "#fff";
+            cxt.fillRect(100,410,120,120); // fillRect方法是创建一个矩形，x坐标、y坐标、宽度、高度
+            cxt.drawImage(qrcode,110,420,100,100);
+            let img_wx_logo = new Image()
+            img_wx_logo.src =  img_logo_path // 图片路径
+            img_wx_logo.onload = function () {
+                cxt.drawImage(img_wx_logo,148,455,25,25);
+                //长按二维码识别
+                cxt.fillStyle="#df3235";
+                cxt.font = "normal 100 12px 微软雅黑";
+                cxt.textBaseline = "middle";
+                cxt.textAlign = "left";
+                cxt.fillText(str_qr_code,120,555);
+                //登录后分享，是分销员可以参与返利哦！
+                cxt.fillStyle="#676767";
+                cxt.font = "normal 100 12px 微软雅黑";
+                cxt.textBaseline = "middle";
+                cxt.textAlign = "left";
+                cxt.fillText(str_share_tips,50,580);
+                let images = $('#myCanvas').get(0).toDataURL('image/jpg');
+                $('body').append('<img src="'+images+'">');
+            }
+        }
+    }
+
+</script>
+</body>
+</html>
